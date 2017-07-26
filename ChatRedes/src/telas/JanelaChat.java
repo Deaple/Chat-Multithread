@@ -3,25 +3,42 @@ import fachadas.ConectarServidor;
 import java.awt.Color;
 import java.awt.Font;
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.net.MulticastSocket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JTextArea;
 
-public class JanelaChat extends javax.swing.JFrame {
+public class JanelaChat extends javax.swing.JFrame implements Runnable {
 
-    ConectarServidor conexao;
-    //ConexaoUDP conectarUDP = new ConexaoUDP();
+    //private ConectarServidor conexao;
+    private String login;
+    private InetAddress ipMulticast = null;
+    private final int portaMulticast = 6868;
+    private MulticastSocket socketMulticast = null;
+    private final String ipGrupo;
     
     /**
      * Creates new form JanelaChat
      */
     public JanelaChat(String login, ConectarServidor conectar) throws IOException {
         initComponents();
-        this.conexao = conectar; //copia a instancia de conectar criada em janelaLogin para cá
+        this.login = login;
+        //this.conexao = conectar; //copia a instancia de conectar criada em janelaLogin para cá
         conectar.enviarDadosLogin(); //termina de mandar os dados do usuario para o servidor
+        String temp = conectar.getIpGrupo();//pega o ip do grupo multicast no qual entrou
+        ipGrupo = new String(temp.substring(1));//remove uma / que esta vindo a mais
+
+        //usuario.getSalaChat();
         
         jLabel7.setText(login);
         jLabel8.setText(login);
+        jLabel9.setText(conectar.getNomeSala());
+        jLabel10.setText(conectar.getNomeSala());
         jTextField1.requestFocus();
+        jList1.setSelectedIndex(0);//deixa o primeiro item da lista selecionado de padrao, q sera o TODOS (multicast)
+        
         //placeholder do campo ESCREVER (aba conversas):
         TextPrompt placeholder = new TextPrompt("Escreva uma mensagem", jTextField1);
         placeholder.setForeground(Color.GRAY); placeholder.changeAlpha(0.8f); placeholder.changeStyle(Font.ITALIC);
@@ -31,9 +48,20 @@ public class JanelaChat extends javax.swing.JFrame {
         //placeholder do campo ARQUIVO (aba arquivos):
         TextPrompt placeholder3 = new TextPrompt("arquivo_exemplo.txt", jTextField3);
         placeholder3.setForeground(Color.GRAY); placeholder3.changeAlpha(0.8f); placeholder3.changeStyle(Font.ITALIC);
+        
+        
+        //INICIALIZAR O LADO SERVIDOR MULTICAST DO CLIENTE:
+        jTextArea1.setText(login+" entrou.");
+        Thread thread = new Thread(new JanelaChat(jTextArea1, ipGrupo));//thread para ficar recebendo as mensagens multicast
+        thread.start();
     }
 
-
+    private JanelaChat(JTextArea historicoMensagens, String ipGrupo) {
+        System.out.println("Thread para receber multicast criada.");
+        this.jTextArea1 = historicoMensagens;
+        this.ipGrupo = ipGrupo;
+    }
+    
     /**
      * This method is called from within the constructor to initialise the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -54,6 +82,7 @@ public class JanelaChat extends javax.swing.JFrame {
         jLabel7 = new javax.swing.JLabel();
         jScrollPane5 = new javax.swing.JScrollPane();
         jList1 = new javax.swing.JList();
+        jLabel9 = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
         jTextArea3 = new javax.swing.JTextArea();
@@ -67,6 +96,7 @@ public class JanelaChat extends javax.swing.JFrame {
         jScrollPane6 = new javax.swing.JScrollPane();
         jList2 = new javax.swing.JList();
         jLabel8 = new javax.swing.JLabel();
+        jLabel10 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -81,7 +111,7 @@ public class JanelaChat extends javax.swing.JFrame {
         jTextArea1.setRequestFocusEnabled(false);
         jScrollPane1.setViewportView(jTextArea1);
 
-        jLabel2.setText("Usuários ativos:");
+        jLabel2.setText("Online em");
 
         jTextField1.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
         jTextField1.setNextFocusableComponent(jButton1);
@@ -99,7 +129,7 @@ public class JanelaChat extends javax.swing.JFrame {
             }
         });
 
-        jLabel7.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel7.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
         jLabel7.setForeground(new java.awt.Color(0, 0, 255));
         jLabel7.setText("username");
 
@@ -110,6 +140,8 @@ public class JanelaChat extends javax.swing.JFrame {
         });
         jScrollPane5.setViewportView(jList1);
 
+        jLabel9.setText("nomeSala");
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -119,25 +151,24 @@ public class JanelaChat extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 623, Short.MAX_VALUE)
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addComponent(jLabel1)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addComponent(jTextField1, javax.swing.GroupLayout.DEFAULT_SIZE, 542, Short.MAX_VALUE)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jButton1)))
-                                .addGap(18, 18, 18)))
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(jTextField1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButton1)))
+                        .addGap(12, 12, 12)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addComponent(jLabel2)
-                                .addGap(173, 173, 173))
-                            .addComponent(jScrollPane5)))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jLabel7)))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel9))
+                            .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel7)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -147,15 +178,16 @@ public class JanelaChat extends javax.swing.JFrame {
                 .addGap(13, 13, 13)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
-                    .addComponent(jLabel2))
+                    .addComponent(jLabel2)
+                    .addComponent(jLabel9))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 375, Short.MAX_VALUE)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 402, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jTextField1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jButton1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addComponent(jScrollPane5))
                 .addContainerGap())
         );
@@ -171,7 +203,7 @@ public class JanelaChat extends javax.swing.JFrame {
 
         jLabel3.setText("Arquivos disponíveis:");
 
-        jLabel4.setText("Usuários ativos:");
+        jLabel4.setText("Online em");
 
         jButton2.setText("BAIXAR");
         jButton2.setNextFocusableComponent(jTabbedPane1);
@@ -201,9 +233,11 @@ public class JanelaChat extends javax.swing.JFrame {
         });
         jScrollPane6.setViewportView(jList2);
 
-        jLabel8.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel8.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
         jLabel8.setForeground(new java.awt.Color(0, 0, 255));
         jLabel8.setText("username");
+
+        jLabel10.setText("nomeSala");
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -212,36 +246,36 @@ public class JanelaChat extends javax.swing.JFrame {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(jLabel3))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addGroup(jPanel2Layout.createSequentialGroup()
-                                        .addContainerGap()
-                                        .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 617, Short.MAX_VALUE))
-                                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel2Layout.createSequentialGroup()
-                                        .addGap(14, 14, 14)
-                                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                            .addComponent(jLabel5)
-                                            .addComponent(jLabel6))
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                                .addComponent(jTextField2)
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(jButton2))
-                                            .addComponent(jTextField3))))
-                                .addGap(17, 17, 17)))
-                        .addGap(1, 1, 1)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel4)
-                            .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jLabel8)))
+                        .addContainerGap()
+                        .addComponent(jLabel3))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel2Layout.createSequentialGroup()
+                            .addContainerGap()
+                            .addComponent(jScrollPane3))
+                        .addGroup(jPanel2Layout.createSequentialGroup()
+                            .addGap(14, 14, 14)
+                            .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addComponent(jLabel5)
+                                .addComponent(jLabel6))
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jTextField3)
+                                .addGroup(jPanel2Layout.createSequentialGroup()
+                                    .addComponent(jTextField2, javax.swing.GroupLayout.DEFAULT_SIZE, 478, Short.MAX_VALUE)
+                                    .addGap(18, 18, 18)
+                                    .addComponent(jButton2))))))
+                .addGap(11, 11, 11)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(jLabel4)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel10))
+                    .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel8)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -250,11 +284,12 @@ public class JanelaChat extends javax.swing.JFrame {
                 .addGap(13, 13, 13)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
-                    .addComponent(jLabel4))
+                    .addComponent(jLabel4)
+                    .addComponent(jLabel10))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 358, Short.MAX_VALUE)
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 385, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -305,23 +340,67 @@ public class JanelaChat extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // QUANDO O USUARIO CLICAR EM ENVIAR:      
-        String mensagem = jTextField1.getText()+"|";
-        String usuarioDestino = jList1.getSelectedValue().toString();
-        
+        String mensagem = jTextField1.getText();
+        String usuarioDestino = jList1.getSelectedValue().toString();      
         
         //se mensagem for multicast:
         if("Item 1".equals(usuarioDestino)){
             try {
-//                conexao.conectarMulticast();
-                Thread thread = new Thread (new ConectarServidor());
-                thread.start();
-                conexao.enviarMensagemMulticast(mensagem);
+                enviarMensagemMulticast(login+" diz: "+mensagem+"|");
+                jTextField1.setText("");
+                jTextField1.requestFocus();
             } catch (IOException ex) {
                 Logger.getLogger(JanelaChat.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }//GEN-LAST:event_jButton1ActionPerformed
+        
+    //SOBRE CONEXAO MULTICAST:
+    public void conectarMulticast() throws IOException{
+        ipMulticast = InetAddress.getByName(ipGrupo);
+        socketMulticast = new MulticastSocket(portaMulticast);
+        socketMulticast.joinGroup(ipMulticast);
+    }
+    public void enviarMensagemMulticast(String mensagem) throws IOException{
+        conectarMulticast();
+        try {
+            DatagramPacket pacote = new DatagramPacket(mensagem.getBytes(), mensagem.length(), ipMulticast, portaMulticast);
+            socketMulticast.send(pacote);
+        } catch (IOException ex) {
+            Logger.getLogger(ConectarServidor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        //socketMulticast.leaveGroup(ipMulticast);
+    }
+    public void mostrarConversas(String mensagem) {
+        jTextArea1.setText(jTextArea1.getText() + "\n" + mensagem);
+        jTextArea1.repaint();
+    }
 
+    @Override
+    public void run() {
+        try {
+            conectarMulticast();
+        } catch (IOException ex) {
+            Logger.getLogger(JanelaChat.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        byte[] buffer = new byte[5000];
+        while (true) {
+            try {
+                DatagramPacket recebido = new DatagramPacket(buffer, buffer.length);
+                socketMulticast.setSoTimeout(500000);
+                socketMulticast.receive(recebido);
+
+                String temp = new String(recebido.getData()); //converte os dados enviados em string
+                String mensagem = temp.substring(0, temp.indexOf("|"));//pra nao aparecer lixo usei esse limite de caracter que é adicionado na captura da escrita em JanelaChat
+                mostrarConversas(mensagem);
+                //System.out.println("Mensagem multicast recebida: " + mensagem);
+            } catch (IOException ex) {
+                Logger.getLogger(JanelaChat.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+    
+    
     /**
      * @param args the command line arguments
      */
@@ -350,17 +429,18 @@ public class JanelaChat extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                //new JanelaChat().setVisible(true);
-            }
-        });
+//        java.awt.EventQueue.invokeLater(new Runnable() {
+//            public void run() {
+//                //new JanelaChat().setVisible(true);
+//            }
+//        });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -368,6 +448,7 @@ public class JanelaChat extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JList jList1;
     private javax.swing.JList jList2;
     private javax.swing.JPanel jPanel1;
@@ -383,4 +464,6 @@ public class JanelaChat extends javax.swing.JFrame {
     private javax.swing.JTextField jTextField2;
     private javax.swing.JTextField jTextField3;
     // End of variables declaration//GEN-END:variables
+
+
 }

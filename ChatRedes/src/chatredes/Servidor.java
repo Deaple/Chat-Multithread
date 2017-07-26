@@ -12,8 +12,6 @@ public final class Servidor {
 
     //private static String servidor = "localhost"; //endereco do servidor
     private static final int portaTCPservidor = 6790; // porta do servidor
-    private static final int portaUDPservidor = 6750;
-    private static final int portaMulticast = 6868;
     private final String salas;
     private Usuario usuario;
     public static ArrayList<Usuario> usuarios = new ArrayList<>();
