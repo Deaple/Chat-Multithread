@@ -45,7 +45,7 @@ public class JanelaChat extends javax.swing.JFrame implements Runnable {
         jLabel10.setText(conectar.getNomeSala());
         jTextField1.requestFocus();
         jList1.setSelectedIndex(0);//deixa o primeiro item da lista selecionado de padrao, q sera o TODOS (multicast)
-        jList2 = jList1;
+        //jList2 = jList1;
 
         //placeholder do campo ESCREVER (aba conversas):
         TextPrompt placeholder = new TextPrompt("Escreva uma mensagem", jTextField1);
