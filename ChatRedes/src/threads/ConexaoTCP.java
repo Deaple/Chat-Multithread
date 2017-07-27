@@ -75,7 +75,7 @@ public class ConexaoTCP implements Runnable {
                 socketMulticast = new MulticastSocket(portaMulticast);
                 socketMulticast.joinGroup(ipGrupo);
                 usuario.setSocketMulticast(socketMulticast);
-                temp = usuario.getNomeUsuario() + " entrou.|";
+                temp = "#"+usuario.getNomeUsuario().toUpperCase() + " ENTROU#|";
                 dtgrm = new DatagramPacket(temp.getBytes(), temp.length(), ipGrupo, portaMulticast);
                 socketMulticast.send(dtgrm);
                 paraCliente.writeBytes(ipGrupo.toString() + '\n');

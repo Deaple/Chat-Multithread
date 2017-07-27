@@ -19,6 +19,10 @@ public class Usuario {
     public Usuario(Socket socketCliente){
         this.socketCliente=socketCliente;
     }
+    public Usuario(String nome){
+        this.nomeUsuario = nome;
+        this.socketCliente = null;
+    }
 
     
     // GETTERS E SETTERS
@@ -68,7 +72,10 @@ public class Usuario {
         this.socketMulticast = socketMulticast;
     }
 
-    
+    @Override
+    public String toString(){
+        return nomeUsuario;
+    }
 
 
     //metodo teste para verificar se esta pegando os arquivos da pasta informada
